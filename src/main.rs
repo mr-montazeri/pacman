@@ -6,7 +6,6 @@ mod utils;
 use crate::world::{WorldModel, Position, DurationWrapper};
 use std::collections::{HashSet, VecDeque};
 use crate::pellet::Pellet;
-use std::fmt::{self, Display, Formatter};
 
 fn nearest_pellet(wm: &WorldModel, start: Position) -> Option<&Pellet> {
     let mut visited = HashSet::new();
@@ -50,20 +49,21 @@ fn main() {
         let mut result = Vec::new();
 
         for pac in wm.get_team_pacs() {
-            // Finding closest pellet
             eprintln!("{:?} => Pac {} at {:?}", start.elapsed(), pac.id(), pac.pos());
 
+            // Finding closest pellet
             let target = nearest_pellet(&wm, pac.pos());
 
+            let message = DurationWrapper(start.elapsed());
 
             match target {
                 None => {
                     eprintln!("Cant find pellet :(");
-                    result.push(format!("MOVE {} {} {} {}", pac.id(), pac.pos().0, pac.pos().1, DurationWrapper(start.elapsed())))
+                    result.push(format!("MOVE {} {} {} {}", pac.id(), pac.pos().0, pac.pos().1, message))
                 }
                 Some(pellet) => {
                     eprintln!("Going to {:?}", pellet.pos());
-                    result.push(format!("MOVE {} {} {} {}", pac.id(), pellet.pos().0, pellet.pos().1, DurationWrapper(start.elapsed())));
+                    result.push(format!("MOVE {} {} {} {}", pac.id(), pellet.pos().0, pellet.pos().1, message));
                 }
             }
         }

@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 use std::io;
 
 use crate::parse_input;
@@ -6,12 +6,12 @@ use crate::pac::{Pac, PacProperties};
 use std::collections::HashMap;
 use crate::pellet::Pellet;
 use std::time::{Instant, Duration};
-use std::fmt::{self, Display, Formatter};
+use std::fmt;
 
 pub struct DurationWrapper(pub Duration);
 
-impl Display for DurationWrapper {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+impl fmt::Display for DurationWrapper {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let micros = self.0.as_micros();
         if micros < 1000 {
             write!(f, "{} μs", micros)
@@ -131,18 +131,16 @@ impl WorldModel {
             let mine = parse_input!(inputs[1], i32) == 1; // true if this pac is yours
             let x = parse_input!(inputs[2], isize); // position in the grid
             let y = parse_input!(inputs[3], isize); // position in the grid
-            // let type_id = inputs[4].trim().to_string(); // unused in wood leagues
-            // let speed_turns_left = parse_input!(inputs[5], i32); // unused in wood leagues
-            // let ability_cooldown = parse_input!(inputs[6], i32); // unused in wood leagues
+            let type_id: &str = &inputs[4].trim().to_string(); // unused in wood leagues
+            let speed_turns_left = parse_input!(inputs[5], i32); // unused in wood leagues
+            let ability_cooldown = parse_input!(inputs[6], i32); // unused in wood leagues
             let pos = (x, y);
 
             let team = if mine { Team::Us } else { Team::Opp };
+            let pac_properties = PacProperties::new(type_id.try_into().unwrap(), pos, speed_turns_left, ability_cooldown);
             if let Some(pac) = self.get_pac(team, id) {
-                pac.update(
-                    PacProperties::new(pos)
-                )
+                pac.update(pac_properties)
             } else {
-                let pac_properties = PacProperties::new(pos);
                 self.pacs.insert((team, id), Pac::new(team, id, Some(pac_properties)));
             }
         }
