@@ -3,10 +3,10 @@ mod pac;
 mod pellet;
 mod utils;
 
-use crate::world::{WorldModel, Position};
+use crate::world::{WorldModel, Position, DurationWrapper};
 use std::collections::{HashSet, VecDeque};
 use crate::pellet::Pellet;
-use std::time::Instant;
+use std::fmt::{self, Display, Formatter};
 
 fn nearest_pellet(wm: &WorldModel, start: Position) -> Option<&Pellet> {
     let mut visited = HashSet::new();
@@ -43,30 +43,33 @@ fn main() {
 
     // game loop
     loop {
-        let start = Instant::now();
         wm.update_by_input();
+        eprintln!("=============== Step {}", wm.turn());
+        let start = wm.turn_start();
 
         let mut result = Vec::new();
 
         for pac in wm.get_team_pacs() {
             // Finding closest pellet
-            eprintln!("Pac {} at {:?}", pac.id(), pac.pos());
-            match nearest_pellet(&wm, pac.pos()) {
+            eprintln!("{:?} => Pac {} at {:?}", start.elapsed(), pac.id(), pac.pos());
+
+            let target = nearest_pellet(&wm, pac.pos());
+
+
+            match target {
                 None => {
                     eprintln!("Cant find pellet :(");
-                    result.push(format!("MOVE {} {} {}", pac.id(), pac.pos().0, pac.pos().1))
+                    result.push(format!("MOVE {} {} {} {}", pac.id(), pac.pos().0, pac.pos().1, DurationWrapper(start.elapsed())))
                 }
                 Some(pellet) => {
                     eprintln!("Going to {:?}", pellet.pos());
-                    result.push(format!("MOVE {} {} {}", pac.id(), pellet.pos().0, pellet.pos().1));
+                    result.push(format!("MOVE {} {} {} {}", pac.id(), pellet.pos().0, pellet.pos().1, DurationWrapper(start.elapsed())));
                 }
             }
         }
+
+        eprintln!("{:?} => Done!", start.elapsed());
         let result = result.join(" | ");
         println!("{}", result);
-
-        let duration = start.elapsed();
-
-        eprintln!("Time elapsed in step is: {:?}", duration);
     }
 }

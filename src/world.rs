@@ -5,6 +5,22 @@ use crate::parse_input;
 use crate::pac::{Pac, PacProperties};
 use std::collections::HashMap;
 use crate::pellet::Pellet;
+use std::time::{Instant, Duration};
+use std::fmt::{self, Display, Formatter};
+
+pub struct DurationWrapper(pub Duration);
+
+impl Display for DurationWrapper {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let micros = self.0.as_micros();
+        if micros < 1000 {
+            write!(f, "{} μs", micros)
+        } else {
+            let millis = micros as f32 / 1000f32;
+            write!(f, "{:.2} ms", millis)
+        }
+    }
+}
 
 #[repr(u8)]
 #[derive(Debug)]
@@ -47,6 +63,7 @@ pub struct WorldModel {
     pacs: HashMap<PacIdentifier, Pac>,
     pellets: HashMap<Position, Pellet>,
     turn: u32,
+    turn_start: Option<Instant>,
     my_score: i32,
     opp_score: i32,
 }
@@ -91,10 +108,14 @@ impl WorldModel {
     pub fn update_by_input(&mut self) {
         let mut input_line = String::new();
         io::stdin().read_line(&mut input_line).unwrap();
+
+        self.turn_start = Some(Instant::now());
+
         let inputs = input_line.split(" ").collect::<Vec<_>>();
         let my_score = parse_input!(inputs[0], i32);
         let opp_score = parse_input!(inputs[1], i32);
 
+        self.turn += 1;
         self.my_score = my_score;
         self.opp_score = opp_score;
 
@@ -191,4 +212,6 @@ impl WorldModel {
     pub fn pellet_at(&self, pos: Position) -> Option<&Pellet> {
         self.pellets.get(&pos)
     }
+    pub fn turn(&self) -> u32 { self.turn }
+    pub fn turn_start(&self) -> Instant { self.turn_start.unwrap_or(Instant::now()) }
 }
