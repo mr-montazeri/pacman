@@ -1,26 +1,14 @@
+pub mod pac;
+pub mod pellet;
+
+use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 use std::io;
+use std::time::Instant;
 
 use crate::parse_input;
-use crate::pac::{Pac, PacProperties};
-use std::collections::HashMap;
-use crate::pellet::Pellet;
-use std::time::{Instant, Duration};
-use std::fmt;
-
-pub struct DurationWrapper(pub Duration);
-
-impl fmt::Display for DurationWrapper {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let micros = self.0.as_micros();
-        if micros < 1000 {
-            write!(f, "{} μs", micros)
-        } else {
-            let millis = micros as f32 / 1000f32;
-            write!(f, "{:.2} ms", millis)
-        }
-    }
-}
+use crate::world::pac::{Pac, PacProperties};
+use crate::world::pellet::Pellet;
 
 #[repr(u8)]
 #[derive(Debug)]
